@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -ex
+
+export ANSIBLE_HOST_KEY_CHECKING=False
+ansible-galaxy collection install -r requirements.yml
+exec ansible-playbook -i hosts.ini playbook.yml -l 192.168.1.254

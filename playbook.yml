@@ -1,0 +1,46 @@
+- hosts:
+   - all
+  connection: ssh
+  tasks:
+    - name: Ensure EAP proxy directories exist
+      become: yes
+      file:
+        dest: "{{ item }}"
+        state: directory
+      loop:
+        - /config/scripts
+        - /config/scripts/post-config.d
+    - name: Copy EAP proxy scripts
+      become: yes
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: vyattacfg
+        mode: 0755
+      loop:
+        - src: eap_proxy/eap_proxy.py
+          dest: /config/scripts/eap_proxy.py
+        - src: eap_proxy.sh
+          dest: /config/scripts/post-config.d/eap_proxy.sh
+- hosts:
+   - all
+  gather_facts: no
+  connection: network_cli
+  tasks:
+    - name: Gather facts
+      edgeos_facts:
+    - name: Configure router
+      community.network.edgeos_config:
+        src: router.cfg.j2
+- hosts:
+   - 192.168.1.254
+  gather_facts: no
+  connection: network_cli
+  tasks:
+    - name: Gather facts
+      edgeos_facts:
+    - name: Delete default user
+      community.network.edgeos_config:
+        lines:
+          - delete system login user ubnt
